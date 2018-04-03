@@ -10,11 +10,11 @@ others (unless specified for some classes). The classes implemented
 right now are:
 
   * Shift Register: A simple N bit shift register that can be chained to create bigger register.
-    * File: [shift_register.py](./shift_register.py)
+    * File: [shift_register.py](./udevices/shift_register.py)
     * Fle Dependency: None
     * Status: Working
   * BME280 & BMP280: A temperature, pressure (and humidity) sensor conected by **I2C**.
-    * File: [bme280.py](./bme280.py)
+    * File: [bme280.py](./udevices/bme280.py)
 	* File Dependency: None
 	* Status: Works for temperature and pressure and in the forced (manual) mode.
 
