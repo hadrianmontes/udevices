@@ -16,5 +16,7 @@ right now are:
   * BME280 & BMP280: A temperature, pressure (and humidity) sensor conected by **I2C**.
     * File: [bme280.py](./udevices/bme280.py)
 	* File Dependency: None
-	* Status: Works for temperature and pressure and in the forced (manual) mode.
+	* Status: Works for temperature and pressure and in the forced
+          and manual mode. (I would like to add humidity support, but
+          I have the bmp280, so only temperature and pressure).
 
