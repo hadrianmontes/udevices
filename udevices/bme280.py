@@ -7,6 +7,7 @@ class BME280(object):
     DEFAULT_ADDRESS = 0x76
     REGISTERS = {"RESET": 0xE0,
                  "CRTL_MEAS": 0xF4,
+                 "CONFIG": 0xF5,
                  "TRIMMING_START": 0x88,
                  "DATA": 0xF7}
     RESET_WORD = 0xB6
@@ -44,6 +45,8 @@ class BME280(object):
         self._config = {"mode": Modes.FORCE,
                         "temperature_oversampling": Oversampling.x1,
                         "pressure_oversampling": Oversampling.x1}
+        self._normal_config = {"time_standby": Standby.t500,
+                               "filter": Filter.OFF}
 
         if address is None:
             self._address = self.DEFAULT_ADDRESS
@@ -97,6 +100,13 @@ class BME280(object):
                              self.REGISTERS["CRTL_MEAS"],
                              chr(value))
 
+    def _write_normal_conf(self):
+        standby = self._normal_config["time_standby"]
+        filter_mod = self._normal_config["filter"]
+        value = (standby << 5 | filter_mod << 2 | 0)
+        self.i2c.writeto_mem(self.address,
+                             self.REGISTERS["CONFIG"],
+                             chr(value))
     @staticmethod
     def _combine_bytes(first, second):
         return (second << 8) + first
@@ -192,6 +202,15 @@ class BME280(object):
         return self._data["pressure"] / 100.0
 
     @property
+    def data(self):
+        """
+        Just extracted data. This method should be used when operating
+        in normal mode
+        """
+        self._read_data()
+        return self.temperature, self.pressure
+
+    @property
     def status(self):
         """
         Returns the oversampling in temperature, pressure and current mode
@@ -206,6 +225,65 @@ class BME280(object):
         value -= hum_over << 2
 
         return (temp_over, hum_over, value)
+
+    @property
+    def mode(self):
+        """
+        The execution mode
+        """
+        return self._config["mode"]
+    @mode.setter
+    def mode(self, value):
+        self._config["mode"] = value
+        self._write_conf()
+
+    @property
+    def temp_over(self):
+        """
+        THe temperature oversampling ( 3 bits)
+        """
+        return self._config["temperature_oversampling"]
+
+    @temp_over.setter
+    def temp_over(self, value):
+        self._config["temperature_oversampling"] = value
+        self._write_conf()
+
+    @property
+    def press_over(self):
+        """
+        The pressure oversmapling
+        """
+        return self._config["pressure_oversampling"]
+
+    @press_over.setter
+    def press_over(self, value):
+        self._config["pressure_oversampling"] = value
+        self._write_conf()
+
+    @property
+    def standby(self):
+        """
+        Standby time (encoded in 3 bytes, see Standby object)
+        """
+        return self._normal_config["time_standby"]
+
+    @standby.setter
+    def standby(self, value):
+        self._normal_config["time_standby"] = value
+        self._write_normal_conf()
+
+    @property
+    def filter_param(self):
+        """
+        The filter paramiter, see Filter object for the encoding
+        """
+        return self._normal_config["filter"]
+
+    @filter_param.setter
+    def filter_param(self, value):
+        self._normal_config["filter"] = value
+        self._write_normal_conf()
 
     def reset(self):
         """
@@ -240,3 +318,27 @@ class Oversampling(object):
     x4 = 3
     x8 = 4
     x16 = 5
+
+class Standby(object):
+    """
+    Values for the different standby time(ms). THe _ reqresents the
+    decimal point
+    """
+    t0_5 = 0
+    t62_5 = 1
+    t125 = 2
+    t250 = 3
+    t500 = 4
+    t1000 = 5
+    t10 = 6
+    t20 = 7
+
+class Filter(object):
+    """
+    Filters for the data
+    """
+    OFF = 0
+    x2 = 1
+    x4 = 2
+    x8 = 3
+    x16 = 4
