@@ -9,7 +9,7 @@ Each device is impleneted in a separate file and independent from the
 others (unless specified for some classes). The classes implemented
 right now are:
 
-  * Shift Register: A simple N bit shift register that can be chained to create bigger register.
+  * Shift Register (based on the **sn74hc595n** might work for others): A simple N bit shift register that can be chained to create bigger register.
     * File: [shift_register.py](./udevices/shift_register.py)
     * Fle Dependency: None
     * Status: Working
