@@ -9,15 +9,15 @@ class Button(Pin):
     def __init__(self, *args, debounce_time=0.1, **kwargs):
         self._debounce_time = debounce_time
         self._last_action = utime.time()
-        self._irq_function = lambda _: None
+        self._irq_function = lambda *args: None
         super(Button, self).__init__(*args, **kwargs)
 
 
-    def _callback(self, _):
+    def _callback(self, arg):
         current = utime.time()
         if (current - self._last_action) > self._debounce_time:
             self._last_action = current
-            self._irq_function(_)
+            self._irq_function(arg)
 
     def irq(self, handler=None, trigger=(Pin.IRQ_FALLING | Pin.IRQ_RISING),
             **kwargs):
