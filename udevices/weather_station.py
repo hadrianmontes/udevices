@@ -127,9 +127,6 @@ class WeatherStation(object):
         print("starting")
         while True:
             self.manual_update()
-            if len(self._historial[0]) > 3:
-                self._screen_mode = 1
-
             utime.sleep(self.update_time)
 
 
