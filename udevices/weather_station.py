@@ -1,43 +1,60 @@
 from . import BME280
 import utime
+from udevices.button import Button
+from machine import Pin
 
 class WeatherStation(object):
     """
     Simple weather station with screen
     """
 
-    def __init__(self, sda, scl, update_time=60):
+    def __init__(self, sda, scl, update_time=60, pin_mode=13):
         from . import OLED
         self.oled = OLED()
         self.update_time = update_time
 
+        self._screen_mode = 0
+        self._change_button = Button(pin_mode, Pin.IN, Pin.PULL_UP)
+        self._change_button.irq(self._change_mode, Pin.IRQ_FALLING)
+
         self.bme280 = BME280(sda=sda, scl=scl)
-        self._prev_values = (0, 0)
         self._historial = (Deque(), Deque())
 
-        self._setup_text()
         self.manual_update()
 
+    def _change_mode(self, _):
+        self._screen_mode = not self._screen_mode
+        self._refresh_screen()
+
+    def _read_values(self):
+        # Read new values
+        self.bme280.update()
+        values = self.bme280.data
+        self._historial[0].append(values[0])
+        self._historial[1].append(values[1])
+
+    def _refresh_screen(self):
+        if not self._screen_mode:
+            self._setup_text()
+        else:
+            self._represent_values()
+
     def _setup_text(self):
+        self.oled.fill(0)
         self.oled.text("Temp:      C", 16, 16)
         self.oled.text("Press:       hPa", 0, 40)
+        # Print new values
+        values = (self._historial[0][-1],
+                  self._historial[1][-1])
+        self._print_values(values, 1)
         self.oled.show()
 
     def manual_update(self):
         """
         Updates the values of temperature and pressure of the screen
         """
-
-        # clear previous values
-        self._print_values(self._prev_values, 0)
-        # Read new values
-        self.bme280.update()
-        self._prev_values = self.bme280.data
-        self._historial[0].append(self._prev_values[0])
-        self._historial[1].append(self._prev_values[1])
-        # Print new values
-        self._print_values(self._prev_values, 1)
-        self.oled.show()
+        self._read_values()
+        self._refresh_screen()
         return
 
     def _print_values(self, values, color=1):
@@ -61,8 +78,8 @@ class WeatherStation(object):
 
         # Create some ticks
         for i in range(4):
-            self.oled.line(41,14*i,
-                           43,14*i, 1)
+            self.oled.line(41, 14*i,
+                           43, 14*i, 1)
 
         for i in range(6):
             self.oled.line(46 + 16*i, 55,
@@ -107,11 +124,11 @@ class WeatherStation(object):
         """
         Autoupdates with new values forever
         """
-
+        print("starting")
         while True:
             self.manual_update()
             if len(self._historial[0]) > 3:
-                self._represent_values()
+                self._screen_mode = 1
 
             utime.sleep(self.update_time)
 
