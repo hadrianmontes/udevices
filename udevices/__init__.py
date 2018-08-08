@@ -1,5 +1,6 @@
 from .bme280 import BME280
 from .shift_register import ShiftRegister
+from .storage import Deque, MultipleHistorial
 
 def OLED():
     """
@@ -11,4 +12,4 @@ def OLED():
     return ssd1306.SSD1306_I2C(128, 64, i2c)
     
 
-__all__ = ("BME280", "ShiftRegister")
+__all__ = ("BME280", "ShiftRegister", "Deque", "MultipleHistorial")
