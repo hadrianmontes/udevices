@@ -2,6 +2,7 @@ from . import BME280
 import utime
 from udevices.button import Button
 from machine import Pin
+from . import MultipleHistorial
 
 class WeatherStation(object):
     """
@@ -18,7 +19,7 @@ class WeatherStation(object):
         self._change_button.irq(self._change_mode, Pin.IRQ_FALLING)
 
         self.bme280 = BME280(sda=sda, scl=scl)
-        self._historial = (Deque(), Deque())
+        self._historial = MultipleHistorial([1, 2])
 
         self.manual_update()
 
@@ -30,8 +31,7 @@ class WeatherStation(object):
         # Read new values
         self.bme280.update()
         values = self.bme280.data
-        self._historial[0].append(values[0])
-        self._historial[1].append(values[1])
+        self._historial.add(values)
 
     def _refresh_screen(self):
         if not self._screen_mode:
@@ -128,20 +128,3 @@ class WeatherStation(object):
         while True:
             self.manual_update()
             utime.sleep(self.update_time)
-
-
-class Deque(list):
-    def __init__(self, *args, max_len=20, **kwargs):
-        self._max_len = max_len
-        super(Deque, self).__init__(*args, **kwargs)
-        self._check_size()
-
-    def append(self, *args, **kwargs):
-        super(Deque, self).append(*args, **kwargs)
-        self._check_size()
-
-    def _check_size(self):
-        while len(self) > self._max_len:
-            self.pop(0)
-
-
