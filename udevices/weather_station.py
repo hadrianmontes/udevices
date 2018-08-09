@@ -9,7 +9,7 @@ class WeatherStation(object):
     Simple weather station with screen
     """
 
-    def __init__(self, sda, scl, update_time=60, pin_mode=13):
+    def __init__(self, sda, scl, update_time=60, pin_mode=15):
         from . import OLED
         self.oled = OLED()
         self.update_time = update_time
