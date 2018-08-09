@@ -43,8 +43,8 @@ class MultipleHistorial(object):
             self._historials[multiplier] = tuple(Deque()
                                                  for _ in range(dimension))
 
-    def __getitem__(self, *args, **kwargs):
-        return self._historials[self._current].__getitem__(*args, **kwargs)
+    def __getitem__(self, index):
+        return self._historials[self._current][index]
 
     def __str__(self):
         return self._historials.__str__()
