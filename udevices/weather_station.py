@@ -19,7 +19,7 @@ class WeatherStation(object):
         self._change_button.irq(self._change_mode, Pin.IRQ_FALLING)
 
         self.bme280 = BME280(sda=sda, scl=scl)
-        self._historial = MultipleHistorial([1, 2])
+        self._historial = MultipleHistorial([2, 4])
 
         self.manual_update()
 
@@ -97,7 +97,7 @@ class WeatherStation(object):
         self.oled.text("{:5.2f}".format(minimum),
                        0, 56, color)
         # Scale of the y axis
-        self.oled.text("x4", 80, 56)
+        self.oled.text("x{:d}".format(4*self._historial.current), 80, 56)
 
     def _plot_data(self, color=1):
         maximum = max(self._historial[0])
