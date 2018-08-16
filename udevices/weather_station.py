@@ -19,7 +19,7 @@ class WeatherStation(object):
         self._change_button.irq(self._change_mode, Pin.IRQ_FALLING)
 
         self.bme280 = BME280(sda=sda, scl=scl)
-        self._historial = MultipleHistorial([2, 4])
+        self._historial = MultipleHistorial([1, 9, 90,])
 
         self.manual_update()
 
@@ -40,6 +40,7 @@ class WeatherStation(object):
             self._represent_values()
 
     def _setup_text(self):
+        self._historial.current = self._historial.fastest
         self.oled.fill(0)
         self.oled.text("Temp:      C", 16, 16)
         self.oled.text("Press:       hPa", 0, 40)
@@ -62,6 +63,7 @@ class WeatherStation(object):
         self.oled.text("{:6.1f}".format(values[1]), 56, 40, color)
 
     def _represent_values(self):
+        self._historial.cycle()
         self._create_axis()
         self._create_labels()
         self._plot_data()
@@ -97,7 +99,26 @@ class WeatherStation(object):
         self.oled.text("{:5.2f}".format(minimum),
                        0, 56, color)
         # Scale of the y axis
-        self.oled.text("x{:d}".format(4*self._historial.current), 80, 56)
+        self.oled.text("{:^11s}".format(self._create_timestamp()),
+                       42, 56)
+
+    def _create_timestamp(self):
+        deltat = 4*self.update_time*self._historial.current
+
+        timestamp = ""
+
+        hours = deltat // 3600
+        if hours != 0:
+            timestamp += "{:d}h ".format(hours)
+        minutes = deltat // 60 % 60
+        if minutes != 0:
+            timestamp += "{:d}min ".format(minutes)
+        seconds = deltat % 60
+        if seconds != 0:
+            timestamp += "{:d}s ".format(seconds)
+
+        return timestamp[:-1]
+        
 
     def _plot_data(self, color=1):
         maximum = max(self._historial[0])
@@ -106,7 +127,10 @@ class WeatherStation(object):
         last = None
 
         for i, temp in enumerate(self._historial[0]):
-            yfraction = (temp - minimum) / (maximum - minimum)
+            diff = maximum - minimum
+            if diff == 0:
+                diff = 0.1
+            yfraction = (temp - minimum) / diff
             ycoord = int(56 * (1 - yfraction))
             xcoord = 46 + 4*i
 
