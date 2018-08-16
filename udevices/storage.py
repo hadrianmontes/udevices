@@ -34,8 +34,8 @@ class MultipleHistorial(object):
         self._historials = {}
         self._counters = {}
         self._dimension = dimension
-        self._period_multipliers = tuple(sorted(period_multipliers))
-        self._current = self._period_multipliers[0]
+        self._period_multipliers = list(sorted(period_multipliers))
+        self.current = self._period_multipliers[0]
 
         
         for multiplier in self._period_multipliers:
@@ -44,7 +44,7 @@ class MultipleHistorial(object):
                                                  for _ in range(dimension))
 
     def __getitem__(self, index):
-        return self._historials[self._current][index]
+        return self._historials[self.current][index]
 
     def __str__(self):
         return self._historials.__str__()
@@ -80,17 +80,21 @@ class MultipleHistorial(object):
 
             self._counters[multipler] += 1
 
+    def cycle(self):
+        """
+        Changes the current historial to the next one
+        """
+        self._current = (self._current + 1) % len(self._period_multipliers)
+
     @property
     def current(self):
         """
         Current index for the get index method
         """
-        return self._current
+        return self._period_multipliers[self._current]
     @current.setter
     def current(self, value):
-        # Check if value un period multiplier
-        _ = self._historials[value]
-        self._current = value
+        self._current = self._period_multipliers.index(value)
 
     @property
     def dimension(self):
@@ -99,3 +103,18 @@ class MultipleHistorial(object):
         """
 
         return self._dimension
+
+    @property
+    def fastest(self):
+        """
+        Returns the period of the fastest mode
+        """
+        return min(self._period_multipliers)
+
+    @property
+    def slowest(self):
+        """
+        Reruns the period of the slowest mode
+        """
+        return max(self._period_multipliers)
+    
