@@ -19,7 +19,7 @@ while not found:
     else:
         print("Device not found Retrying")
 uweather = Peripheral(uweather.addr)
-uweather.connect(uweather.addr
+uweather.connect(uweather.addr)
 for service in uweather.getServices():
     service_weather = service
 
